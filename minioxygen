@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use FindBin 1.51 qw( $RealBin );
+use lib $RealBin;
+
+package Main;
+
+use MiniOxygen::Source;
+use MiniOxygen::Render;
+use MiniOxygen::Markdown;
+
+use Data::Dumper;
+
+# Version (required by perlcritic --brutal)
+our $VERSION = '0.1a';
+
+sub main {
+
+    my %db;
+
+    while ( my $arg = shift @ARGV ) {
+
+        my $file   = undef;
+        my $source = MiniOxygen::Source->new( $arg, 'perl' );
+
+        while ( my $token = $source->next_token() ) {
+
+            # new token
+            if ( defined $token->{file} ) {
+                $file = $token->{file};
+
+                # $db{$file} = $token;
+            }
+
+            if ( defined $file ) {
+                my $type = $token->{type};
+                push @{ $db{$file}->{$type} }, $token;
+            }
+        }
+    }
+
+    # Now render this db
+    MiniOxygen::Render::list_files( \%db );
+
+    foreach my $file ( keys %db ) {
+
+        # file details
+        MiniOxygen::Render::file( $db{$file}->{file}[0] );
+
+        # file functions
+        MiniOxygen::Render::list_functions( $db{$file}->{function} );
+
+        # details functions
+        for my $func ( @{ $db{$file}->{function} } ) {
+            MiniOxygen::Render::function( $func, $file );
+        }
+    }
+
+    return;
+}
+
+# run
+main;
