@@ -15,6 +15,11 @@ package MiniOxygen::Token;
 use Readonly;
 use Data::Dumper;
 
+Readonly our $COMMENT_START => '[/][*]';
+Readonly our $COMMENT_NEXT  => '[/][*][*!]';
+Readonly our $COMMENT_PREV  => '[/][*][*!][<]';
+Readonly our $COMMENT_END   => '[*][/]';
+
 # Version (required by perlcritic --brutal)
 our $VERSION = '0.1a';
 
@@ -62,14 +67,15 @@ sub add_keyword {
     my ( $self, $keyword, $value ) = @_;
 
     if ( $keyword eq 'param' ) {
-        my ( $param, $desc ) = $value =~ m/(\w+)\s+([^\n]*)$/sxm;
-        push @{ $self->{param} },      $param;
-        push @{ $self->{param_desc} }, $desc;
+        my ( $param, $desc ) = $value =~ m/(\S+)\s+([^\n]*)$/sxm;
+        push @{ $self->{param} },       $param;
+        push @{ $self->{param_brief} }, $desc;
         return;
     }
 
     # types
-    if (   $keyword eq 'enum'
+    if (   $keyword eq 'def'
+        || $keyword eq 'enum'
         || $keyword eq 'file'
         || $keyword eq 'function'
         || $keyword eq 'struct' )
@@ -79,7 +85,9 @@ sub add_keyword {
     }
 
     # specifics
-    if ( $keyword eq 'function' ) {
+    if (   $keyword eq 'def'
+        || $keyword eq 'function' )
+    {
         $self->{param}       = [];
         $self->{return_type} = undef;
     }
@@ -90,19 +98,60 @@ sub add_keyword {
 }
 
 # /*!
-# @function MiniOxygen::Token::c_def
-# @brief Interprets a c macro/constant
-# @param array array containing the definitions' lines of code
-# */
-sub c_def {
-}
-
-# /*!
 # @function MiniOxygen::Token::c_enum
 # @brief Interprets a c enumeration
 # @param array containing the enum intenrals (and more)
 # */
 sub c_enum {
+    my ( $self, $lines ) = @_;
+
+    my $inline = join q{}, @{$lines};
+
+    # take only the contents
+    ($inline) = $inline =~ m/{([^}]+)/sxm;
+
+    $self->{entry}   = [];
+    $self->{comment} = [];
+
+    my $count = 0;
+
+    while ( length $inline > 0 ) {
+
+        # First word
+        my ($word) = $inline =~ m/(\S+)/sxm;
+        $inline =~ s/\S+//sxm;
+
+        # Entry, starts with A-Z
+        if ( $word =~ /[[:alpha:]]+\w+/sxm ) {
+            push @{ $self->{entry} },   $word;
+            push @{ $self->{comment} }, q{};
+            $count = $count + 1;
+        }
+
+        # Comments, start with /*
+        if ( $word =~ /$COMMENT_START/sxm ) {
+            my ($comment) = $inline =~ m/\s*(.+?)$COMMENT_END/sxm;
+
+            # if the comment specifies next or previous entry
+            if ( $word =~ /$COMMENT_PREV/sxm ) {
+                $self->{comment}[ $count - 1 ] = $comment;
+            }
+            elsif ( $word =~ /$COMMENT_NEXT/sxm ) {
+                $self->{comment}[$count] = $comment;
+
+            }
+            else { }    # ignore normal comments
+
+            # consume chars up to */ & loop
+            $inline =~ s/.+?$COMMENT_END//sxm;
+            next;
+        }
+
+        # Consume word
+        $inline =~ s/$word//sxm;
+    }
+
+    return;
 }
 
 sub _c_func {
@@ -164,6 +213,11 @@ sub c_function {
 # @param array array containtning the structure internals
 #
 sub c_struct {
+    my ( $self, $lines ) = @_;
+
+    # this is harder to parse than expected, so let's cheat
+    $self->{contents} = $lines;
+    return;
 }
 
 1;

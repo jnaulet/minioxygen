@@ -29,8 +29,8 @@ Any file containing a @file tag will be parsed and its documentation will be gen
   * function
     * param
     * return
-  * def (pending)
-  * enum (pending)
+  * def
+  * enum
   * struct (pending)
 
 **Auto-generated documentation for MiniOxygen starts after this line**
