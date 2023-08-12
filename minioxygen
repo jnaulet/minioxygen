@@ -11,6 +11,8 @@ use MiniOxygen::Source;
 use MiniOxygen::Render;
 use MiniOxygen::Markdown;
 
+use Carp;
+use Getopt::Long qw(GetOptions);
 use Data::Dumper;
 
 # Version (required by perlcritic --brutal)
@@ -19,11 +21,16 @@ our $VERSION = '0.1a';
 sub main {
 
     my %db;
+    my $lang = 'any';
+
+    # parse options
+    GetOptions( 'lang|l=s' => \$lang )
+      or croak "Usage: minioxyen [--lang|l language] file(s)...\n";
 
     while ( my $arg = shift @ARGV ) {
 
         my $file   = undef;
-        my $source = MiniOxygen::Source->new( $arg, 'perl' );
+        my $source = MiniOxygen::Source->new( $arg, lc $lang );
 
         while ( my $token = $source->next_token() ) {
 

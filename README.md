@@ -37,132 +37,11 @@ Any file containing a @file tag will be parsed and its documentation will be gen
 
 ## File/objects
 
-  * [MiniOxygen::Token](#minioxygentoken)
-  * [MiniOxygen::Source](#minioxygensource)
   * [MiniOxygen::Input](#minioxygeninput)
   * [MiniOxygen::Render](#minioxygenrender)
+  * [MiniOxygen::Token](#minioxygentoken)
   * [MiniOxygen::Markdown](#minioxygenmarkdown)
----
-
-## MiniOxygen::Token
-
-**This is the main token management module**
-
-  * [MiniOxygen::Token::new](#minioxygentokennew)
-  * [MiniOxygen::Token::append_text](#minioxygentokenappend_text)
-  * [MiniOxygen::Token::add_keyword](#minioxygentokenadd_keyword)
-
-Back to 
-[File/objects](#fileobjects)
-
----
-
-## MiniOxygen::Token::new
-
-**Creates a new MiniOxygen::Token object**
-
-### Prototype
-
-        MiniOxygen::Token::new (  )
-
-### Returns
-
-  * MiniOxygen::Token A Token object
-
-Back to 
-[MiniOxygen::Token](#minioxygentoken)
-
----
-
-## MiniOxygen::Token::append_text
-
-**Appends some text to the token description**
-
-### Prototype
-
-        MiniOxygen::Token::append_text ( text )
-
-### Parameters
-
-  * text : 
-text to append to the token description
-
-Back to 
-[MiniOxygen::Token](#minioxygentoken)
-
----
-
-## MiniOxygen::Token::add_keyword
-
-**Adds a pair keyword/value to the token**
-
-### Prototype
-
-        MiniOxygen::Token::add_keyword ( keyword, value )
-
-### Parameters
-
-  * keyword : 
-the keyword to add to this token
-  * value : 
-the keyword associated value / string
-
-Back to 
-[MiniOxygen::Token](#minioxygentoken)
-
----
-
-## MiniOxygen::Source
-
-**Main source code parsing module for MiniOxygen**
-
-  * [MiniOxygen::Source::new](#minioxygensourcenew)
-  * [MiniOxygen::Source::next_token](#minioxygensourcenext_token)
-
-Back to 
-[File/objects](#fileobjects)
-
----
-
-## MiniOxygen::Source::new
-
-**Creates a new MiniOxygen::Source object**
-
-### Prototype
-
-        MiniOxygen::Source::new ( path, lang )
-
-### Parameters
-
-  * path : 
-the path to the source file to open/parse
-  * lang : 
-the lenguage of the source file (c, perl, ...)
-
-### Returns
-
-  * a MiniOxygen::Source object
-
-Back to 
-[MiniOxygen::Source](#minioxygensource)
-
----
-
-## MiniOxygen::Source::next_token
-
-**Gets the next MiniOxygen token from file**
-
-### Prototype
-
-        MiniOxygen::Source::next_token (  )
-
-### Returns
-
-  * a MiniOxygen::Token object
-
-Back to 
-[MiniOxygen::Source](#minioxygensource)
-
+  * [MiniOxygen::Source](#minioxygensource)
 ---
 
 ## MiniOxygen::Input
@@ -287,6 +166,112 @@ the parent object name/link
 
 Back to 
 [MiniOxygen::Render](#minioxygenrender)
+
+---
+
+## MiniOxygen::Token
+
+**This is the main token management module**
+
+  * [MiniOxygen::Token::new](#minioxygentokennew)
+  * [MiniOxygen::Token::append_text](#minioxygentokenappend_text)
+  * [MiniOxygen::Token::add_keyword](#minioxygentokenadd_keyword)
+  * [MiniOxygen::Token::c_function](#minioxygentokenc_function)
+  * [MiniOxygen::Token::c_enum](#minioxygentokenc_enum)
+
+Back to 
+[File/objects](#fileobjects)
+
+---
+
+## MiniOxygen::Token::new
+
+**Creates a new MiniOxygen::Token object**
+
+### Prototype
+
+        MiniOxygen::Token::new (  )
+
+### Returns
+
+  * MiniOxygen::Token A Token object
+
+Back to 
+[MiniOxygen::Token](#minioxygentoken)
+
+---
+
+## MiniOxygen::Token::append_text
+
+**Appends some text to the token description**
+
+### Prototype
+
+        MiniOxygen::Token::append_text ( text )
+
+### Parameters
+
+  * text : 
+text to append to the token description
+
+Back to 
+[MiniOxygen::Token](#minioxygentoken)
+
+---
+
+## MiniOxygen::Token::add_keyword
+
+**Adds a pair keyword/value to the token**
+
+### Prototype
+
+        MiniOxygen::Token::add_keyword ( keyword, value )
+
+### Parameters
+
+  * keyword : 
+the keyword to add to this token
+  * value : 
+the keyword associated value / string
+
+Back to 
+[MiniOxygen::Token](#minioxygentoken)
+
+---
+
+## MiniOxygen::Token::c_function
+
+**Interprets a c function prototype**
+
+### Prototype
+
+        MiniOxygen::Token::c_function ( lines )
+
+### Parameters
+
+  * lines : 
+an array containing the prototype's lines of code
+
+Back to 
+[MiniOxygen::Token](#minioxygentoken)
+
+---
+
+## MiniOxygen::Token::c_enum
+
+**Interprets a c enumeration**
+
+### Prototype
+
+        MiniOxygen::Token::c_enum ( array )
+
+### Parameters
+
+  * array : 
+?
+
+Back to 
+[MiniOxygen::Token](#minioxygentoken)
 
 ---
 
@@ -474,6 +459,59 @@ the block of code
 
 Back to 
 [MiniOxygen::Markdown](#minioxygenmarkdown)
+
+---
+
+## MiniOxygen::Source
+
+**Main source code parsing module for MiniOxygen**
+
+  * [MiniOxygen::Source::new](#minioxygensourcenew)
+  * [MiniOxygen::Source::next_token](#minioxygensourcenext_token)
+
+Back to 
+[File/objects](#fileobjects)
+
+---
+
+## MiniOxygen::Source::new
+
+**Creates a new MiniOxygen::Source object**
+
+### Prototype
+
+        MiniOxygen::Source::new ( path, lang )
+
+### Parameters
+
+  * path : 
+the path to the source file to open/parse
+  * lang : 
+the language of the source file (c, perl, ...)
+
+### Returns
+
+  * a MiniOxygen::Source object
+
+Back to 
+[MiniOxygen::Source](#minioxygensource)
+
+---
+
+## MiniOxygen::Source::next_token
+
+**Gets the next MiniOxygen token from file**
+
+### Prototype
+
+        MiniOxygen::Source::next_token (  )
+
+### Returns
+
+  * a MiniOxygen::Token object
+
+Back to 
+[MiniOxygen::Source](#minioxygensource)
 
 ---
 

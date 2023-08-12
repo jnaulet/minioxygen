@@ -33,7 +33,7 @@ use Data::Dumper;
 # @function MiniOxygen::Source::new
 # @brief Creates a new MiniOxygen::Source object
 # @param path the path to the source file to open/parse
-# @param lang the lenguage of the source file (c, perl, ...)
+# @param lang the language of the source file (c, perl, ...)
 # @return a MiniOxygen::Source object
 # */
 sub new {
@@ -44,7 +44,7 @@ sub new {
         state => $STATE_IDLE,
         token => undef,         # current token
         lines => [],
-        buf   => q{},
+        buf   => [],
     };
 
     bless $self, $class;
@@ -95,11 +95,11 @@ sub _next_c {
     # function interpreter
     if ( defined $token->{function} ) {
 
-        # append line until we find { or ;
-        $self->{buf} .= $line;
+        # append line (without \n) until we find { or ;
+        push @{ $self->{buf} }, $line =~ m/([^\n]*)/sxm;
         if ( $line =~ /[{;]$/sxm ) {
             $token->c_function( $self->{buf} );
-            $self->{buf} = q{};
+            $self->{buf} = [];
         }
         else {
             # no state change

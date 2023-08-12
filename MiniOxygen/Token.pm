@@ -13,6 +13,7 @@ use lib $RealBin;
 package MiniOxygen::Token;
 
 use Readonly;
+use Data::Dumper;
 
 # Version (required by perlcritic --brutal)
 our $VERSION = '0.1a';
@@ -42,7 +43,7 @@ sub append_text {
     if ( !defined $text ) { return; }
 
     if ( defined $self->{text} ) {
-        $self->{text} .= qw{ } . $text;
+        $self->{text} .= q{ } . $text;
     }
     else {
         $self->{text} = $text;
@@ -88,30 +89,81 @@ sub add_keyword {
     return;
 }
 
-# /!*
+# /*!
+# @function MiniOxygen::Token::c_def
+# @brief Interprets a c macro/constant
+# @param array array containing the definitions' lines of code
+# */
+sub c_def {
+}
+
+# /*!
+# @function MiniOxygen::Token::c_enum
+# @brief Interprets a c enumeration
+# @param array containing the enum intenrals (and more)
+# */
+sub c_enum {
+}
+
+sub _c_func {
+    my ( $self, $line ) = @_;
+
+    # extract prototype & destroy
+    my ( $proto, $args ) = $line =~ m/(\w+)[(]([^)]*)/sxm;
+    $line =~ s/\w+[(].*$//sxm;
+
+    # normalize spaces
+    $line =~ s/\^s+//sxm;
+    $line =~ s/\s+$//sxm;
+    $line =~ s/\s+/ /sxm;
+
+    return ( $line, $proto, $args );
+}
+
+sub _c_var {
+    my ( $self, $line ) = @_;
+
+    my ($name) = $line =~ m/(\w+)[;\n]*$/sxm;
+    $line =~ s/\w+[;\n]*$//sxm;
+
+    # normalize spaces
+    $line =~ s/^\s+//sxm;
+    $line =~ s/\s+$//sxm;
+    $line =~ s/\s+/ /sxm;
+
+    return ( $line, $name );
+}
+
+# /*!
 # @function MiniOxygen::Token::c_function
 # @brief Interprets a c function prototype
-# @param str A string containing the prototype
+# @param lines an array containing the prototype's lines of code
 # */
 sub c_function {
-    my ( $self, $str ) = @_;
-    my ( $type, $name, $param ) = $str =~ m/(\w+)\s+(\w+)[\s(]*([^)]*)/sxm;
+    my ( $self, $lines ) = @_;
 
-    $self->{function}    = $name;
-    $self->{return_type} = $type;
+    my $line = join q{}, @{$lines};
+    my ( $return_type, $function, $args ) = $self->_c_func($line);
+
+    $self->{function}    = $function;
+    $self->{return_type} = $return_type;
 
     # params
-    my @params = split /,/sxm, $param;
+    my @params = split /,/sxm, $args;
 
     for my $p (@params) {
-        $name = $p =~ m/(\w+)$/sxm;
-        $type = substr $p, 0, -length $name;
-        $type =~ s/^[\s]+//sxm;    # remove leading spaces
-        $type =~ s/[\s]+$//sxm;    # remove trailing spaces
-
+        my ( $type, $name ) = $self->_c_var($p);
         push @{ $self->{param_type} }, $type;
     }
     return;
+}
+
+# /*!
+# @function MiniOxygen::Token::c_struct
+# @brief Inteprets a c structure
+# @param array array containtning the structure internals
+#
+sub c_struct {
 }
 
 1;

@@ -12,7 +12,9 @@ It is quite basic and can be used with almost any language.
 
 Basic command line is:
 
-    # minioxygen file(s)...
+    # minioxygen [--lang|-l language] file(s)...
+
+Language can be any language (basic mode) or 'c' (improved mode).
 
 As an example, MiniOxygen will parse itself with the command:
 
