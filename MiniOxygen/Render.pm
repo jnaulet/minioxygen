@@ -12,6 +12,7 @@ use lib $RealBin;
 
 package MiniOxygen::Render;
 
+use Carp;
 use Readonly;
 use MiniOxygen::Markdown;
 
@@ -40,6 +41,7 @@ sub list_files {
         MiniOxygen::Markdown::create_link($key);
     }
 
+    MiniOxygen::Markdown::newline();
     MiniOxygen::Markdown::line();
     return;
 }
@@ -65,12 +67,171 @@ sub file {
 }
 
 # /*!
+# @function MiniOxygen::Render::list_defs
+# @brief Renders a bullet list of defs/macros
+# @param array an array of MiniOxygen::Token objects
+# */
+sub list_defs {
+    my ($array) = @_;
+
+    MiniOxygen::Markdown::header( $H3, 'Definitions' );
+
+    for my $d ( @{$array} ) {
+        MiniOxygen::Markdown::bullet();
+        MiniOxygen::Markdown::create_link( $d->{def} );
+    }
+
+    MiniOxygen::Markdown::newline();
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($FILES_HEADER);
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+sub _definition {
+    my ($token) = @_;
+
+    MiniOxygen::Markdown::header( $H3, 'Definition' );
+
+    MiniOxygen::Markdown::code_block( q{    } . $token->{def} );
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+sub _parameters {
+    my ($token) = @_;
+
+    # no section present
+    if ( scalar @{ $token->{param} } == 0 ) { return; }
+
+    MiniOxygen::Markdown::header( $H3, 'Parameters' );
+
+    for ( 0 .. scalar @{ $token->{param} } - 1 ) {
+        MiniOxygen::Markdown::code_block(
+            q{    } . $token->{param}[$_] . ' : ' . $token->{param_brief}[$_] );
+    }
+
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+sub _returns {
+    my ($token) = @_;
+
+    # no section present
+    if ( !defined $token->{return} ) { return; }
+
+    MiniOxygen::Markdown::header( $H3, 'Returns' );
+
+    MiniOxygen::Markdown::code_block( q{    } . $token->{return} );
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+# /*!
+# @function MiniOxygen::Render::def
+# @brief Renders a def with details
+# @param token a def token
+# @param parent the parent object name/link
+# */
+sub def {
+    my ( $token, $parent ) = @_;
+
+    # header
+    MiniOxygen::Markdown::header( $H2, $token->{def} );
+
+    # brief
+    if ( defined $token->{brief} ) {
+        MiniOxygen::Markdown::bold( $token->{brief} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    # long
+    if ( defined $token->{text} ) {
+        MiniOxygen::Markdown::normal( $token->{text} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    _definition($token);
+    _parameters($token);
+    _returns($token);
+
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($parent);
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+# /*!
+# @function MiniOxygen::Render::list_enums
+# @brief Renders a bullet list of enums
+# @param array an array of MiniOxygen::Token objects
+# */
+sub list_enums {
+    my ($array) = @_;
+
+    MiniOxygen::Markdown::header( $H3, 'Data types' );
+
+    for my $e ( @{$array} ) {
+        MiniOxygen::Markdown::bullet();
+        MiniOxygen::Markdown::create_link( $e->{enum} );
+    }
+
+    MiniOxygen::Markdown::newline();
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($FILES_HEADER);
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+# /*!
+# @function MiniOxygen::Render::enum
+# @brief Renders an enum with details
+# @param token an enum token
+# @param parent the parent object name/link
+# */
+sub enum {
+    my ( $token, $parent ) = @_;
+
+    MiniOxygen::Markdown::header( $H3, $token->{enum} );
+
+    # brief
+    if ( defined $token->{brief} ) {
+        MiniOxygen::Markdown::bold( $token->{brief} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    # long
+    if ( defined $token->{text} ) {
+        MiniOxygen::Markdown::normal( $token->{text} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    # print Dumper $token;
+    print 'Entry | Description' . qq{\n} or croak 'table output gone wrong';
+    print '--- | ---' . qq{\n}           or croak 'table output gone wrong';
+
+    for ( 0 .. scalar @{ $token->{entry} } - 1 ) {
+        print $token->{entry}[$_] . ' | ' . $token->{comment}[$_] . qq{\n}
+          or croak 'table output gone wrong';
+    }
+
+    MiniOxygen::Markdown::newline();
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($parent);
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+# /*!
 # @function MiniOxygen::Render::list_functions
 # @brief Renders a bullet list of functions
 # @param array an array of MiniOxygen::Token objects
 # */
 sub list_functions {
     my ($array) = @_;
+
+    MiniOxygen::Markdown::header( $H3, 'Functions' );
 
     for my $f ( @{$array} ) {
         MiniOxygen::Markdown::bullet();
@@ -81,11 +242,10 @@ sub list_functions {
     MiniOxygen::Markdown::normal('Back to ');
     MiniOxygen::Markdown::create_link($FILES_HEADER);
     MiniOxygen::Markdown::newline();
-    MiniOxygen::Markdown::line();
     return;
 }
 
-sub _function_proto {
+sub _prototype {
     my ($token) = @_;
 
     MiniOxygen::Markdown::header( $H3, 'Prototype' );
@@ -120,40 +280,8 @@ sub _function_proto {
     return;
 }
 
-sub _function_param {
-    my ($token) = @_;
-
-    # no section present
-    if ( scalar @{ $token->{param} } == 0 ) { return; }
-
-    MiniOxygen::Markdown::header( $H3, 'Parameters' );
-
-    for ( 0 .. scalar @{ $token->{param} } - 1 ) {
-        MiniOxygen::Markdown::bullet();
-        MiniOxygen::Markdown::normal( $token->{param}[$_] . ' : ' );
-        MiniOxygen::Markdown::normal( $token->{param_desc}[$_] );
-    }
-
-    MiniOxygen::Markdown::newline();
-    return;
-}
-
-sub _function_return {
-    my ($token) = @_;
-
-    # no section present
-    if ( !defined $token->{return} ) { return; }
-
-    MiniOxygen::Markdown::header( $H3, 'Returns' );
-
-    MiniOxygen::Markdown::bullet();
-    MiniOxygen::Markdown::normal( $token->{return} );
-    MiniOxygen::Markdown::newline();
-    return;
-}
-
 # /*!
-# @function  MiniOxygen::Render::function
+# @function MiniOxygen::Render::function
 # @brief Renders a function with details
 # @param token a function token
 # @param parent the parent object name/link
@@ -177,14 +305,71 @@ sub function {
     }
 
     # details
-    _function_proto($token);
-    _function_param($token);
-    _function_return($token);
+    _prototype($token);
+    _parameters($token);
+    _returns($token);
 
     MiniOxygen::Markdown::normal('Back to ');
     MiniOxygen::Markdown::create_link($parent);
     MiniOxygen::Markdown::newline();
-    MiniOxygen::Markdown::line();
+    return;
+}
+
+# /*!
+# @function MiniOxygen::Render::list_structs
+# @brief Renders a bullet list of data structures
+# @param array an array of MiniOxygen::Token objects
+# */
+sub list_structs {
+    my ($array) = @_;
+
+    MiniOxygen::Markdown::header( $H3, 'Data structures' );
+
+    for my $f ( @{$array} ) {
+        MiniOxygen::Markdown::bullet();
+        MiniOxygen::Markdown::create_link( $f->{struct} );
+    }
+
+    MiniOxygen::Markdown::newline();
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($FILES_HEADER);
+    MiniOxygen::Markdown::newline();
+    return;
+}
+
+# /*!
+# @function MiniOxygen::Render::struct
+# @brief Renders a struct with details
+# @param token a struct token
+# @param parent the parent object name/link
+# */
+sub struct {
+    my ( $token, $parent ) = @_;
+
+    MiniOxygen::Markdown::header( $H3, $token->{struct} );
+
+    # brief
+    if ( defined $token->{brief} ) {
+        MiniOxygen::Markdown::bold( $token->{brief} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    # long
+    if ( defined $token->{text} ) {
+        MiniOxygen::Markdown::normal( $token->{text} );
+        MiniOxygen::Markdown::newline();
+    }
+
+    # This has proven to be quite challenging for this quick-and-dirty project,
+    # so let's wrap this up
+    for my $entry ( @{ $token->{contents} } ) {
+        MiniOxygen::Markdown::code_block( q{    } . $entry );
+    }
+
+    MiniOxygen::Markdown::newline();
+    MiniOxygen::Markdown::normal('Back to ');
+    MiniOxygen::Markdown::create_link($parent);
+    MiniOxygen::Markdown::newline();
     return;
 }
 

@@ -45,6 +45,7 @@ sub new {
         token => undef,         # current token
         lines => [],
         buf   => [],
+        level => 0,
     };
 
     bless $self, $class;
@@ -75,7 +76,7 @@ sub _next_mark {
     }
 
     # keywords
-    my ( $keyword, $value ) = $line =~ m/[@\\]([[:alpha:]]+)\s+(\w+[^\n]*)$/sxm;
+    my ( $keyword, $value ) = $line =~ m/[@\\]([[:alpha:]]+)\s+([^\n]*)$/sxm;
 
     if ( defined $keyword ) {
         $self->{token}->add_keyword( $keyword, $value );
@@ -92,13 +93,45 @@ sub _next_c {
 
     my $token = $self->{token};
 
+    # enum interpreter
+    if ( defined $token->{enum} ) {
+
+        # append line (without \n) until we find ';'
+        push @{ $self->{buf} }, $line =~ m/([^\n]*)/sxm;
+        if ( $line =~ /;$/sxm ) {
+            $token->c_enum( $self->{buf} );
+            $self->{buf} = [];
+        }
+        else {
+            # no state change
+            return;
+        }
+    }
+
     # function interpreter
     if ( defined $token->{function} ) {
 
-        # append line (without \n) until we find { or ;
+        # append line (without \n) until we find '{' or ';'
         push @{ $self->{buf} }, $line =~ m/([^\n]*)/sxm;
         if ( $line =~ /[{;]$/sxm ) {
             $token->c_function( $self->{buf} );
+            $self->{buf} = [];
+        }
+        else {
+            # no state change
+            return;
+        }
+    }
+
+    # struct interpreter
+    if ( defined $token->{struct} ) {
+
+        # append line (without \n) until we find '}'
+        push @{ $self->{buf} }, $line =~ m/([^\n]*)/sxm;
+        $self->{level} += $line =~ tr/{//;    # level up
+        $self->{level} -= $line =~ tr/}//;    # level down
+        if ( $self->{level} == 0 ) {
+            $token->c_struct( $self->{buf} );
             $self->{buf} = [];
         }
         else {

@@ -56,10 +56,37 @@ sub main {
         # file details
         MiniOxygen::Render::file( $db{$file}->{file}[0] );
 
+        # file definitions
+        MiniOxygen::Render::list_defs( $db{$file}->{def} );
+
+        # file data types
+        MiniOxygen::Render::list_enums( $db{$file}->{enum} );
+
+        # file data structures
+        MiniOxygen::Render::list_structs( $db{$file}->{struct} );
+
         # file functions
         MiniOxygen::Render::list_functions( $db{$file}->{function} );
 
-        # details functions
+        # separator
+        MiniOxygen::Markdown::line();
+
+        # details definitions
+        for my $def ( @{ $db{$file}->{def} } ) {
+            MiniOxygen::Render::def( $def, $file );
+        }
+
+        # data types definitions
+        for my $enum ( @{ $db{$file}->{enum} } ) {
+            MiniOxygen::Render::enum( $enum, $file );
+        }
+
+        # data structs definitions
+        for my $struct ( @{ $db{$file}->{struct} } ) {
+            MiniOxygen::Render::struct( $struct, $file );
+        }
+
+        # functions definitions
         for my $func ( @{ $db{$file}->{function} } ) {
             MiniOxygen::Render::function( $func, $file );
         }

@@ -3,10 +3,15 @@
 ## Description
 
 MiniOxygen is a automatic documentation generator (mostly) compatible with the DOxygen/Javadoc
-notation.   
+notation written in Perl.   
 It outputs to Markdown format on stdout.
 
 It is quite basic and can be used with almost any language.
+
+## Dependencies
+
+This tool is modern Perl, which means it requires a few modules to be present on your system, like
+libcarp-assert-perl for example.
 
 ## Usage
 
@@ -29,8 +34,8 @@ Any file containing a @file tag will be parsed and its documentation will be gen
   * function
     * param
     * return
-  * def (pending)
-  * enum (pending)
+  * def
+  * enum
   * struct (pending)
 
 **Auto-generated documentation for MiniOxygen starts after this line**
